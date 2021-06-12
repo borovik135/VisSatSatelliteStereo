@@ -6,5 +6,5 @@ FN = '/data/Danesfield/CORE3D/Jacksonville/VisSatStereo/aggregate_3d.ply'
 outFN = '/data/Danesfield/CORE3D/Jacksonville/VisSatStereo/aggregate_3d.tsv'
 points, color, comments = ply2np(FN)
 with open(outFN, 'w') as f:
-    CVW = csv.writer(f, delimiter='\t')
+    CVW = csv.writer(f, delimiter=' ')
     CVW.writerows(points)
