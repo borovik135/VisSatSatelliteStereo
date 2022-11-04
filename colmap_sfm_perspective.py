@@ -30,7 +30,7 @@
 #  ===============================================================================================================
 
 
-import os
+import os, sys
 from colmap_sfm_utils import write_template_perspective
 import json
 import colmap_sfm_commands
@@ -88,15 +88,20 @@ def run_sfm(work_dir, sfm_dir, init_camera_file, weight):
     with open(os.path.join(sfm_dir, 'init_ba_camera_dict.json')) as fp:
         after_bundle_cameras = json.load(fp)
 
+    if not len(after_bundle_cameras.keys()):
+        print(f'warning: run_sfm: no after_bundle_cameras found', file=sys.stderr)
+
     result = ['img_name, delta_cx, delta_cy\n', ]
     for img_name in sorted(pre_bundle_cameras.keys()):
         # w, h, fx, fy, cx, cy, s, qw, qx, qy, qz, tx, ty, tz
         pre_bundle_params = pre_bundle_cameras[img_name]
-        after_bundle_params = after_bundle_cameras[img_name]
-        delta_cx = after_bundle_params[4] - pre_bundle_params[4]
-        delta_cy = after_bundle_params[5] - pre_bundle_params[5]
-
-        result.append('{}, {}, {}\n'.format(img_name, delta_cx, delta_cy))
+        if img_name in after_bundle_cameras.keys():
+            after_bundle_params = after_bundle_cameras[img_name]
+            delta_cx = after_bundle_params[4] - pre_bundle_params[4]
+            delta_cy = after_bundle_params[5] - pre_bundle_params[5]
+            result.append('{}, {}, {}\n'.format(img_name, delta_cx, delta_cy))
+        else:
+            print(f'warning: run_sfm: img_name "{img_name}" is not in after_bundle_cameras: {after_bundle_cameras.keys()}', file=sys.stderr)
 
     with open(os.path.join(sfm_dir, 'principal_points_adjustment.csv'), 'w') as fp:
         fp.write(''.join(result))
